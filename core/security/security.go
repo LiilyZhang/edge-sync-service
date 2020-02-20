@@ -161,7 +161,7 @@ func CanUserCreateObject(request *http.Request, orgID string, metaData *common.M
 		return true, userOrgID, userID
 	}
 
-	if code == AuthFailed || code == AuthEdgeNode || userOrgID != orgID {
+	if code == AuthFailed || (common.Configuration.NodeType == common.CSS && code == AuthEdgeNode) || userOrgID != orgID {
 		return false, userOrgID, userID
 	}
 
