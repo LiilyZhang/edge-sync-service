@@ -1938,11 +1938,17 @@ func handleUpdateObject(orgID string, objectType string, objectID string, writer
 	var payload objectUpdate
 	err := json.NewDecoder(request.Body).Decode(&payload)
 	if err == nil {
-		if !security.CanUserCreateObject(request, orgID, &payload.Meta) {
+		validateUser, userOrgID, userID := security.CanUserCreateObject(request, orgID, &payload.Meta)
+		if !validateUser {
 			writer.WriteHeader(http.StatusForbidden)
 			writer.Write(unauthorizedBytes)
 			return
 		}
+
+		if payload.Meta.OwnerID != userOrgID+"/"+userID {
+			payload.Meta.OwnerID = userOrgID + "/" + userID
+		}
+
 		if err := UpdateObject(orgID, objectType, objectID, payload.Meta, payload.Data); err == nil {
 			writer.WriteHeader(http.StatusNoContent)
 		} else {

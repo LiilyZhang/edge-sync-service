@@ -155,44 +155,44 @@ func Authenticate(request *http.Request) (int, string, string) {
 
 // CanUserCreateObject checks if the user identified by the credentials in the supplied request,
 // can create an object of the object type, and send it to the destinations in the meta data.
-func CanUserCreateObject(request *http.Request, orgID string, metaData *common.MetaData) bool {
+func CanUserCreateObject(request *http.Request, orgID string, metaData *common.MetaData) (bool, string, string) {
 	code, userOrgID, userID := Authenticate(request)
 	if code == AuthSyncAdmin {
-		return true
+		return true, userOrgID, userID
 	}
 
 	if code == AuthFailed || code == AuthEdgeNode || userOrgID != orgID {
-		return false
+		return false, userOrgID, userID
 	}
 
 	if common.Configuration.NodeType == common.ESS {
-		return true
+		return true, userOrgID, userID
 	}
 
 	if code == AuthAdmin {
-		return true
+		return true, userOrgID, userID
 	}
 
 	if metaData.DestType == "" && 0 == len(metaData.DestinationsList) {
 		// Only Admins can send out broadcasts
-		return false
+		return false, userOrgID, userID
 	}
 
 	if !checkObjectAccessByUser(userID, orgID, metaData.ObjectType) {
-		return false
+		return false, userOrgID, userID
 	}
 
 	if common.Configuration.NodeType == common.ESS {
-		return true
+		return true, userOrgID, userID
 	}
 
 	destinationTypes := getDestinationTypes(metaData)
 	for _, destinationType := range destinationTypes {
 		if !checkDestinationAccessByUser(userID, orgID, destinationType) {
-			return false
+			return false, userOrgID, userID
 		}
 	}
-	return true
+	return true, userOrgID, userID
 }
 
 // CanUserAccessObject checks if the user identified by the credentials in the supplied request,
