@@ -554,6 +554,7 @@ const (
 	AckRegister           = "regack"
 	RegisterNew           = "registerNew"
 	RegisterAsNew         = "registerAsNew"
+	Unregister            = "unregister"
 	Received              = "received"
 	ReceivedPending       = "receivedpending"
 	AckReceived           = "ackreceived"
