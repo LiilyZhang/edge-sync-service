@@ -98,8 +98,23 @@ func startHTTPServer(ipAddress string, registerHandlers bool, swaggerFile string
 			if err != nil {
 				return &common.SetupError{Message: fmt.Sprintf("Failed to setup Unix Socket listening. Error: %s", err)}
 			}
+			log.Info("chmod to 0777 for socket file")
 			if err := os.Chmod(socketFile, 0777); err != nil {
 				return &common.SetupError{Message: fmt.Sprintf("Failed to setup permission for Unix Socket listening. Error: %s", err)}
+			}
+			info, err := os.Stat(socketFile)
+			if err != nil {
+				return &common.SetupError{Message: fmt.Sprintf("Failed to check permission for Unix Socket listening. Error: %s", err)}
+			}
+			mode := info.Mode()
+			log.Info("Group permission: ")
+			for i := 4; i < 7; i++ {
+				log.Info(string(mode.String()[i]))
+			}
+
+			log.Info("Others permission: ")
+			for i := 7; i < 10; i++ {
+				log.Info(string(mode.String()[i]))
 			}
 			go startHTTPServerHelper(common.Configuration.ListeningType == common.ListeningSecureUnix, listener)
 		}
