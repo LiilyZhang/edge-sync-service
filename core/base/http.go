@@ -32,6 +32,7 @@ func startHTTPServer(ipAddress string, registerHandlers bool, swaggerFile string
 			common.Configuration.UnsecureListeningPort)
 
 	// When running embedded in app, there is no API serving nor swagger serving
+	fmt.Printf("In http.go, common.ServingAPIs: %t\n", common.ServingAPIs)
 	if common.ServingAPIs {
 		if registerHandlers {
 			setupAPIServer()
