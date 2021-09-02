@@ -165,6 +165,10 @@ func (store *MongoStorage) Init() common.SyncServiceError {
 		trace.Info("Connecting to mongo...")
 	}
 	for connectTime := 0; connectTime < common.Configuration.DatabaseConnectTimeout; connectTime += 10 {
+		fmt.Printf("Troy - Mongo dial info: addrs: %v, timeout %v, database: %v, ReplicaSetName: %v, Source: %v, Service: %v, ServiceHost: %v, Mechanism: %v, PoolLimit: %v, PoolTimeout: %v, ReadTimeout: %v, WriteTimeout: %v, AppName: %v, ReadPreference: %v, Safe: %v, FailFast: %v, Direct: %v, MinPoolSize: %v, MaxIdleTimeMS: %v\n",
+			store.dialInfo.Addrs, store.dialInfo.Timeout, store.dialInfo.Database, store.dialInfo.ReplicaSetName, store.dialInfo.Source, store.dialInfo.Service, store.dialInfo.ServiceHost, store.dialInfo.Mechanism, store.dialInfo.PoolLimit,
+			store.dialInfo.PoolTimeout, store.dialInfo.ReadTimeout, store.dialInfo.WriteTimeout, store.dialInfo.AppName, store.dialInfo.ReadPreference, store.dialInfo.Safe, store.dialInfo.FailFast, store.dialInfo.Direct, store.dialInfo.MinPoolSize, store.dialInfo.MaxIdleTimeMS)
+
 		session, err = mgo.DialWithInfo(store.dialInfo)
 		if err == nil {
 			break
