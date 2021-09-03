@@ -19,44 +19,34 @@
 			"versionExact": "v1.1.1"
 		},
 		{
-			"checksumSHA1": "5paEOrPNmte9PRyvpBF8HTDjQD4=",
+			"checksumSHA1": "O1v7ZY6psIKMtE2Ma/hp1myzM2o=",
 			"path": "github.com/globalsign/mgo",
-			"revision": "113d3961e7311526535a1ef7042196563d442761",
-			"revisionTime": "2018-06-15T13:49:36Z",
-			"version": "=r2018.06.15",
-			"versionExact": "r2018.06.15"
+			"revision": "eeefdecb41b842af6dc652aaea4026e8403e62df",
+			"revisionTime": "2018-10-15T13:59:52Z"
 		},
 		{
 			"checksumSHA1": "zdy6XflmESAiFmyptSqpUMfXSyo=",
 			"path": "github.com/globalsign/mgo/bson",
-			"revision": "113d3961e7311526535a1ef7042196563d442761",
-			"revisionTime": "2018-06-15T13:49:36Z",
-			"version": "=r2018.06.15",
-			"versionExact": "r2018.06.15"
+			"revision": "eeefdecb41b842af6dc652aaea4026e8403e62df",
+			"revisionTime": "2018-10-15T13:59:52Z"
 		},
 		{
 			"checksumSHA1": "//bXQG4HblBwxHJDIW/PklXAxu0=",
 			"path": "github.com/globalsign/mgo/internal/json",
-			"revision": "113d3961e7311526535a1ef7042196563d442761",
-			"revisionTime": "2018-06-15T13:49:36Z",
-			"version": "=r2018.06.15",
-			"versionExact": "r2018.06.15"
+			"revision": "eeefdecb41b842af6dc652aaea4026e8403e62df",
+			"revisionTime": "2018-10-15T13:59:52Z"
 		},
 		{
 			"checksumSHA1": "loubUcDO2QAStKIlVd7DqSeoEaw=",
 			"path": "github.com/globalsign/mgo/internal/sasl",
-			"revision": "113d3961e7311526535a1ef7042196563d442761",
-			"revisionTime": "2018-06-15T13:49:36Z",
-			"version": "=r2018.06.15",
-			"versionExact": "r2018.06.15"
+			"revision": "eeefdecb41b842af6dc652aaea4026e8403e62df",
+			"revisionTime": "2018-10-15T13:59:52Z"
 		},
 		{
 			"checksumSHA1": "xjfEsfN7ho6dDOVeUQJhW4KzD2I=",
 			"path": "github.com/globalsign/mgo/internal/scram",
-			"revision": "113d3961e7311526535a1ef7042196563d442761",
-			"revisionTime": "2018-06-15T13:49:36Z",
-			"version": "=r2018.06.15",
-			"versionExact": "r2018.06.15"
+			"revision": "eeefdecb41b842af6dc652aaea4026e8403e62df",
+			"revisionTime": "2018-10-15T13:59:52Z"
 		},
 		{
 			"checksumSHA1": "H8wo+NR5z+VRl0wqPYpVQfC06ks=",
