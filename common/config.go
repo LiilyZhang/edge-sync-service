@@ -668,6 +668,7 @@ func ValidateConfig() error {
 	if Configuration.NodeType == CSS {
 		if Configuration.StorageProvider == "" {
 			Configuration.StorageProvider = Mongo
+			Configuration.MongoAddressCsv = "mongodb://localhost:27017"
 		} else if Configuration.StorageProvider != Mongo && Configuration.StorageProvider != Bolt {
 			return &configError{"Invalid StorageProvider, for CSS please specify any off: 'mongo', 'bolt', or leave as empty string"}
 		}
