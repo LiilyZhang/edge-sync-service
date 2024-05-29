@@ -4,7 +4,6 @@ go 1.21
 
 require (
 	github.com/eclipse/paho.mqtt.golang v1.4.3
-	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 	github.com/google/uuid v1.6.0
 	github.com/open-horizon/edge-utilities v0.0.0-20190711093331-0908b45a7152
 	go.etcd.io/bbolt v1.3.10
@@ -26,5 +25,4 @@ require (
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )

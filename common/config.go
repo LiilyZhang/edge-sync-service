@@ -376,6 +376,7 @@ func Load(configFileName string) error {
 	if err = properties.LoadProperties(props, &Configuration, "config"); err != nil {
 		return err
 	}
+
 	err = properties.LoadEnvironment(&Configuration, "env")
 	if err != nil {
 		return err
@@ -668,6 +669,7 @@ func ValidateConfig() error {
 	if Configuration.NodeType == CSS {
 		if Configuration.StorageProvider == "" {
 			Configuration.StorageProvider = Mongo
+			Configuration.MongoAddressCsv = "mongodb://mongo:27017"
 		} else if Configuration.StorageProvider != Mongo && Configuration.StorageProvider != Bolt {
 			return &configError{"Invalid StorageProvider, for CSS please specify any off: 'mongo', 'bolt', or leave as empty string"}
 		}
