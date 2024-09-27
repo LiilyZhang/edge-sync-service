@@ -1,6 +1,7 @@
 package dataVerifier
 
 import (
+	"bufio"
 	"bytes"
 	"crypto"
 	"crypto/rsa"
@@ -52,6 +53,8 @@ func NewDataVerifier(hashAlgorithm string, publicKey string, signature string) *
 }
 
 // VerifyDataSignature is to verify the data. This function will generate the tmp data in storage. Call RemoveTempData() after verification to remove the tmp data
+// data is os.File (inputStream) for streaming upload
+// data is buffer (outputStream) for chunk upload, saved as temp data, then retrieved as inputstream or outputstream??
 func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID string, objectType string, objectID string, destinationDataURI string) (bool, common.SyncServiceError) {
 
 	var dr io.Reader
@@ -68,7 +71,7 @@ func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID stri
 			return false, &common.InternalError{Message: "Signature is not base64 encoded. Error: " + err.Error()}
 		} else {
 			dataIn := make([]byte, 0)
-			if n, err := data.Read(dataIn); err != nil {
+			if n, err := bufio.NewReader(data).Read(dataIn); err != nil {
 				if trace.IsLogging(logger.DEBUG) {
 					trace.Debug("DataVerifier - Error: check incoming data for (%v %v %v) is: %v, length is %v, error: %v", orgID, objectType, objectID, string(dataIn), n, err)
 				}
@@ -76,7 +79,7 @@ func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID stri
 				if trace.IsLogging(logger.DEBUG) {
 					trace.Debug("DataVerifier - check incoming data for (%v %v %v) is: %v, length is %v", orgID, objectType, objectID, string(dataIn), n)
 				}
-				data = bytes.NewReader(dataIn)
+				data = bytes.NewBuffer(dataIn)
 			}
 			dr = io.TeeReader(data, dataVerifier.dataHash)
 		}
