@@ -367,7 +367,7 @@ func (store *MongoStorage) createFile(id string, data io.Reader) common.SyncServ
 
 		uploadOpts := options.GridFSUpload().SetChunkSizeBytes(int32(common.Configuration.MaxDataChunkSize))
 		// filename of the object in fs.File is the value of id
-		_, err = bucket.UploadFromStream(id, data, uploadOpts)
+		_, err = bucket.UploadFromStream(id, io.Reader(data), uploadOpts)
 		return nil, err
 	}
 
