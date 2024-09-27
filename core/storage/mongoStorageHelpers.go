@@ -97,8 +97,7 @@ func (store *MongoStorage) copyDataToFile(id string, dataReader io.Reader) (err 
 	store.removeFile(id)
 	err = store.createFile(id, dataReader)
 	if err != nil {
-		err = &Error{fmt.Sprintf("Failed to create file to store the data. Error: %s.", err)}
-		return
+		return &Error{fmt.Sprintf("Failed to create file to store the data. Error: %s.", err)}
 	}
 
 	return

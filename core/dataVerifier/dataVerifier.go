@@ -1,6 +1,7 @@
 package dataVerifier
 
 import (
+	"bytes"
 	"crypto"
 	"crypto/rsa"
 	"crypto/x509"
@@ -66,7 +67,17 @@ func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID stri
 		} else if signatureBytes, err = base64.StdEncoding.DecodeString(dataVerifier.signature); err != nil {
 			return false, &common.InternalError{Message: "Signature is not base64 encoded. Error: " + err.Error()}
 		} else {
-
+			dataIn := make([]byte, 0)
+			if n, err := data.Read(dataIn); err != nil {
+				if trace.IsLogging(logger.DEBUG) {
+					trace.Debug("DataVerifier - Error: check incoming data for (%v %v %v) is: %v, length is %v, error: %v", orgID, objectType, objectID, string(dataIn), n, err)
+				}
+			} else {
+				if trace.IsLogging(logger.DEBUG) {
+					trace.Debug("DataVerifier - check incoming data for (%v %v %v) is: %v, length is %v", orgID, objectType, objectID, string(dataIn), n)
+				}
+				data = bytes.NewReader(dataIn)
+			}
 			dr = io.TeeReader(data, dataVerifier.dataHash)
 		}
 	}
@@ -87,6 +98,13 @@ func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID stri
 		if exists, err := Store.StoreObjectData(orgID, objectType, objectID, dr); err != nil || !exists {
 			return false, err
 		}
+	}
+
+	retrievedData, err := Store.RetrieveObjectData(orgID, objectType, objectID, false)
+	storedData := make([]byte, 0)
+	n, err := retrievedData.Read(storedData)
+	if trace.IsLogging(logger.DEBUG) {
+		trace.Debug("DataVerifier - retrievedObjectData for (%v %v %v) is: %v, length is %v, error: %v", orgID, objectType, objectID, string(storedData), n, err)
 	}
 
 	if dataVerifier.writeThrough {
