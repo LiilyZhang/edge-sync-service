@@ -1,7 +1,6 @@
 package dataVerifier
 
 import (
-	"bufio"
 	"bytes"
 	"crypto"
 	"crypto/rsa"
@@ -65,23 +64,41 @@ func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID stri
 	if dataVerifier.writeThrough {
 		dr = data
 	} else {
+		if trace.IsLogging(logger.DEBUG) {
+			trace.Debug("publicKey is: %v\n", dataVerifier.publicKey)
+			trace.Debug("signature is: %v\n", dataVerifier.signature)
+		}
+
 		if publicKeyBytes, err = base64.StdEncoding.DecodeString(dataVerifier.publicKey); err != nil {
 			return false, &common.InternalError{Message: "PublicKey is not base64 encoded. Error: " + err.Error()}
 		} else if signatureBytes, err = base64.StdEncoding.DecodeString(dataVerifier.signature); err != nil {
 			return false, &common.InternalError{Message: "Signature is not base64 encoded. Error: " + err.Error()}
 		} else {
-			dataIn := make([]byte, 0)
-			if n, err := bufio.NewReader(data).Read(dataIn); err != nil {
-				if trace.IsLogging(logger.DEBUG) {
-					trace.Debug("DataVerifier - Error: check incoming data for (%v %v %v) is: %v, length is %v, error: %v", orgID, objectType, objectID, string(dataIn), n, err)
-				}
-			} else {
-				if trace.IsLogging(logger.DEBUG) {
-					trace.Debug("DataVerifier - check incoming data for (%v %v %v) is: %v, length is %v", orgID, objectType, objectID, string(dataIn), n)
-				}
-				data = bytes.NewBuffer(dataIn)
-			}
+			/*
+				dataIn := make([]byte, 0)
+				if n, err := data.Read(dataIn); err != nil {
+					if trace.IsLogging(logger.DEBUG) {
+						trace.Debug("DataVerifier - Error: check incoming data for (%v %v %v) is: %v, length is %v, error: %v", orgID, objectType, objectID, string(dataIn), n, err)
+					}
+				} else {
+					if trace.IsLogging(logger.DEBUG) {
+						trace.Debug("DataVerifier - check incoming data for (%v %v %v) is: %v, length is %v", orgID, objectType, objectID, string(dataIn), n)
+					}
+					data = bytes.NewBuffer(dataIn)
+				}*/
+
+			// Here we need to hash the message
 			dr = io.TeeReader(data, dataVerifier.dataHash)
+			//n, err := io.Copy(dataVerifier.dataHash, data)
+
+			// bytesArray := StreamToByte(data)
+			// if trace.IsLogging(logger.DEBUG) {
+			// 	trace.Debug("DataVerifier - StreamToByte: %v\n", string(bytesArray))
+			// }
+			// n, err := dataVerifier.dataHash.Write(bytesArray)
+			// if trace.IsLogging(logger.DEBUG) {
+			// 	trace.Debug("DataVerifier - write to hash n: %v, err: %v\n", n, err)
+			// }
 		}
 	}
 
@@ -157,8 +174,25 @@ func (dataVerifier *DataVerifier) verifyHelper(publicKeyBytes []byte, signatureB
 	} else {
 		pubKeyToUse := pubKey.(*rsa.PublicKey)
 		if err = rsa.VerifyPSS(pubKeyToUse, dataVerifier.cryptoHashType, dataHashSum, signatureBytes, nil); err != nil {
+			if trace.IsLogging(logger.DEBUG) {
+				trace.Debug("Failed to verify data with public key and data signature, Error: %v", err.Error())
+
+			}
+			//return true, nil
 			return false, &common.InternalError{Message: "Failed to verify data with public key and data signature, Error: " + err.Error()}
 		}
 	}
 	return true, nil
+}
+
+func StreamToByte(stream io.Reader) []byte {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(stream)
+	return buf.Bytes()
+}
+
+func StreamToString(stream io.Reader) string {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(stream)
+	return buf.String()
 }
