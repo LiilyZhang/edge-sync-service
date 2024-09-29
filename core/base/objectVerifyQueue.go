@@ -77,7 +77,7 @@ func (q *ObjectVerifyQueue) run() {
 								log.Error("Error: %s", err.Error())
 							}
 						}
-						dataVf.RemoveUnverifiedData(meta)
+						//dataVf.RemoveUnverifiedData(meta)
 						// Set object status from "verifying" to "verification_failed"
 					} else {
 						status = common.ReadyToSend

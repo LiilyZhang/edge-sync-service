@@ -123,7 +123,7 @@ func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID stri
 	}
 
 	objectSize := int64(2048)
-	if metadata, err := Store.RetrieveObject(orgID, objectType, objectID); err != nil && metadata != nil {
+	if metadata, err := Store.RetrieveObject(orgID, objectType, objectID); err == nil && metadata != nil {
 		objectSize = metadata.ObjectSize
 	} else {
 		if trace.IsLogging(logger.DEBUG) {
@@ -139,8 +139,8 @@ func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID stri
 		trace.Debug("DataVerifier - retrievedObjectData for (%v %v %v), length is %v, error: %v", orgID, objectType, objectID, len(storedData), err)
 		trace.Debug("DataVerifier - compare dataIn and retrievedData..., dataIn length: %v, retrieved data length: %v, objectDataSize in metadata: %v", len(dataIn), len(storedData), objectSize)
 		trace.Debug("DataVerifier - dataIn and retrieved data are same: %v", bytes.Equal(dataIn, storedData))
-		trace.Debug("DataVerifier - dataIn %v", dataIn)
-		trace.Debug("DataVerifier - retrieved data %v", storedData)
+		//trace.Debug("DataVerifier - dataIn %v", dataIn)
+		//trace.Debug("DataVerifier - retrieved data %v", storedData)
 	}
 
 	if dataVerifier.writeThrough {

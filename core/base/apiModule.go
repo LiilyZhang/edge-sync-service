@@ -311,7 +311,7 @@ func UpdateObject(orgID string, objectType string, objectID string, metaData com
 				log.Error("Failed to verify data for object %s %s, Error: %s\n", objectType, objectID, err.Error())
 			}
 
-			dataVf.RemoveUnverifiedData(metaData)
+			//dataVf.RemoveUnverifiedData(metaData)
 			status = common.VerificationFailed
 			if updateStatusErr := store.UpdateObjectStatus(orgID, objectType, objectID, status); updateStatusErr != nil && log.IsLogging(logger.ERROR) {
 				log.Error("Failed to update object status to %s for %s %s, Error: %s\n", status, objectType, objectID, updateStatusErr.Error())
@@ -697,7 +697,7 @@ func PutObjectAllData(orgID string, objectType string, objectID string, dataRead
 				}
 				log.Error("Failed to verify data for object %s %s, remove unverified data. Error: %s\n", objectType, objectID, errMessage)
 			}
-			dataVf.RemoveUnverifiedData(*metaData)
+			//dataVf.RemoveUnverifiedData(*metaData)
 
 			if updateErr := store.UpdateObjectStatus(orgID, objectType, objectID, common.VerificationFailed); updateErr != nil {
 				if log.IsLogging(logger.ERROR) {
