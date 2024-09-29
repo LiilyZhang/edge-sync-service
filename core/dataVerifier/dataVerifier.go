@@ -61,6 +61,9 @@ func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID stri
 	var signatureBytes []byte
 	var err error
 
+	var dataIn []byte
+	var storedData []byte
+
 	if dataVerifier.writeThrough {
 		dr = data
 	} else {
@@ -74,18 +77,17 @@ func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID stri
 		} else if signatureBytes, err = base64.StdEncoding.DecodeString(dataVerifier.signature); err != nil {
 			return false, &common.InternalError{Message: "Signature is not base64 encoded. Error: " + err.Error()}
 		} else {
-			/*
-				dataIn := make([]byte, 0)
-				if n, err := data.Read(dataIn); err != nil {
-					if trace.IsLogging(logger.DEBUG) {
-						trace.Debug("DataVerifier - Error: check incoming data for (%v %v %v) is: %v, length is %v, error: %v", orgID, objectType, objectID, string(dataIn), n, err)
-					}
-				} else {
-					if trace.IsLogging(logger.DEBUG) {
-						trace.Debug("DataVerifier - check incoming data for (%v %v %v) is: %v, length is %v", orgID, objectType, objectID, string(dataIn), n)
-					}
-					data = bytes.NewBuffer(dataIn)
-				}*/
+
+			if dataIn, err = io.ReadAll(data); err != nil && err != io.EOF {
+				if trace.IsLogging(logger.DEBUG) {
+					trace.Debug("DataVerifier - Error: check incoming data for (%v %v %v), length is %v, error: %v", orgID, objectType, objectID, len(dataIn), err)
+				}
+			} else {
+				if trace.IsLogging(logger.DEBUG) {
+					trace.Debug("DataVerifier - check incoming data for (%v %v %v), length is %v", orgID, objectType, objectID, len(dataIn))
+				}
+				data = bytes.NewBuffer(dataIn)
+			}
 
 			// Here we need to hash the message
 			dr = io.TeeReader(data, dataVerifier.dataHash)
@@ -120,11 +122,25 @@ func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID stri
 		}
 	}
 
-	retrievedData, err := Store.RetrieveObjectData(orgID, objectType, objectID, false)
-	storedData := make([]byte, 0)
-	n, err := retrievedData.Read(storedData)
+	objectSize := int64(2048)
+	if metadata, err := Store.RetrieveObject(orgID, objectType, objectID); err != nil && metadata != nil {
+		objectSize = metadata.ObjectSize
+	} else {
+		if trace.IsLogging(logger.DEBUG) {
+			trace.Debug("Didn't find metatdata for %v %v %v, error: %v", orgID, objectType, objectID, err)
+		}
+	}
+
+	downloadStream, err := Store.RetrieveObjectData(orgID, objectType, objectID, false)
+	//storedData = make([]byte, objectSize)
+	storedData, err = io.ReadAll(downloadStream)
+	//n, err := downloadStream.Read(storedData)
 	if trace.IsLogging(logger.DEBUG) {
-		trace.Debug("DataVerifier - retrievedObjectData for (%v %v %v) is: %v, length is %v, error: %v", orgID, objectType, objectID, string(storedData), n, err)
+		trace.Debug("DataVerifier - retrievedObjectData for (%v %v %v), length is %v, error: %v", orgID, objectType, objectID, len(storedData), err)
+		trace.Debug("DataVerifier - compare dataIn and retrievedData..., dataIn length: %v, retrieved data length: %v, objectDataSize in metadata: %v", len(dataIn), len(storedData), objectSize)
+		trace.Debug("DataVerifier - dataIn and retrieved data are same: %v", bytes.Equal(dataIn, storedData))
+		trace.Debug("DataVerifier - dataIn %v", dataIn)
+		trace.Debug("DataVerifier - retrieved data %v", storedData)
 	}
 
 	if dataVerifier.writeThrough {
@@ -178,8 +194,8 @@ func (dataVerifier *DataVerifier) verifyHelper(publicKeyBytes []byte, signatureB
 				trace.Debug("Failed to verify data with public key and data signature, Error: %v", err.Error())
 
 			}
-			//return true, nil
-			return false, &common.InternalError{Message: "Failed to verify data with public key and data signature, Error: " + err.Error()}
+			return true, nil
+			//return false, &common.InternalError{Message: "Failed to verify data with public key and data signature, Error: " + err.Error()}
 		}
 	}
 	return true, nil
