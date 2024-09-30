@@ -1129,14 +1129,21 @@ type Reader struct {
 	mux sync.Mutex // could maybe be replaced by an RWMutex
 }
 
-func NewReader(reader io.Reader) Reader {
-	return Reader{
+func NewReader(reader io.Reader) io.Reader {
+	// var rd *Reader
+	// rd = &Reader{
+	// 	r:   reader,
+	// 	mux: *new(sync.Mutex),
+	// }
+	// return rd
+
+	return &Reader{
 		r:   reader,
 		mux: *new(sync.Mutex),
 	}
 }
 
-func (r Reader) Read(p []byte) (n int, err error) {
+func (r *Reader) Read(p []byte) (n int, err error) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
