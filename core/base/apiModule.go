@@ -645,6 +645,9 @@ func PutObjectAllData(orgID string, objectType string, objectID string, dataRead
 
 	common.HealthStatus.ClientRequestReceived()
 
+	apiLock.Lock()
+	//defer apiLock.Unlock()
+
 	lockIndex := common.HashStrings(orgID, objectType, objectID)
 	apiObjectLocks.Lock(lockIndex)
 	common.ObjectLocks.Lock(lockIndex)
@@ -653,21 +656,25 @@ func PutObjectAllData(orgID string, objectType string, objectID string, dataRead
 	if err != nil {
 		common.ObjectLocks.Unlock(lockIndex)
 		apiObjectLocks.Unlock(lockIndex)
+		apiLock.Unlock()
 		return false, err
 	}
 	if metaData == nil {
 		common.ObjectLocks.Unlock(lockIndex)
 		apiObjectLocks.Unlock(lockIndex)
+		apiLock.Unlock()
 		return false, nil
 	}
 	if status != common.ReadyToSend && status != common.NotReadyToSend && status != common.Verifying && status != common.VerificationFailed {
 		common.ObjectLocks.Unlock(lockIndex)
 		apiObjectLocks.Unlock(lockIndex)
+		apiLock.Unlock()
 		return false, &common.InvalidRequest{Message: "Can't update data of the receiving side"}
 	}
 	if metaData.NoData {
 		common.ObjectLocks.Unlock(lockIndex)
 		apiObjectLocks.Unlock(lockIndex)
+		apiLock.Unlock()
 		return false, &common.InvalidRequest{Message: "Can't update data, the NoData flag is set to true"}
 	}
 
@@ -680,6 +687,7 @@ func PutObjectAllData(orgID string, objectType string, objectID string, dataRead
 			}
 			common.ObjectLocks.Unlock(lockIndex)
 			apiObjectLocks.Unlock(lockIndex)
+			apiLock.Unlock()
 			return false, &common.InternalError{Message: "Failed to update object status to verifying"}
 		}
 
@@ -706,6 +714,7 @@ func PutObjectAllData(orgID string, objectType string, objectID string, dataRead
 			}
 			common.ObjectLocks.Unlock(lockIndex)
 			apiObjectLocks.Unlock(lockIndex)
+			apiLock.Unlock()
 			return false, &common.InternalError{Message: "Failed to verify and store data, Error: " + errMessage}
 		}
 
@@ -715,6 +724,7 @@ func PutObjectAllData(orgID string, objectType string, objectID string, dataRead
 			}
 			common.ObjectLocks.Unlock(lockIndex)
 			apiObjectLocks.Unlock(lockIndex)
+			apiLock.Unlock()
 			return false, &common.InternalError{Message: "Failed to updated object status to " + common.ReadyToSend}
 		}
 		if trace.IsLogging(logger.DEBUG) {
@@ -725,6 +735,7 @@ func PutObjectAllData(orgID string, objectType string, objectID string, dataRead
 		if exists, err := store.StoreObjectData(orgID, objectType, objectID, dataReader); err != nil || !exists {
 			common.ObjectLocks.Unlock(lockIndex)
 			apiObjectLocks.Unlock(lockIndex)
+			apiLock.Unlock()
 			return false, err
 		}
 	}
@@ -733,6 +744,7 @@ func PutObjectAllData(orgID string, objectType string, objectID string, dataRead
 		if err = store.UpdateObjectSourceDataURI(orgID, objectType, objectID, ""); err != nil {
 			common.ObjectLocks.Unlock(lockIndex)
 			apiObjectLocks.Unlock(lockIndex)
+			apiLock.Unlock()
 			return false, err
 		}
 	}
@@ -744,6 +756,7 @@ func PutObjectAllData(orgID string, objectType string, objectID string, dataRead
 	if err != nil {
 		common.ObjectLocks.Unlock(lockIndex)
 		apiObjectLocks.Unlock(lockIndex)
+		apiLock.Unlock()
 		return false, err
 	}
 
@@ -751,6 +764,7 @@ func PutObjectAllData(orgID string, objectType string, objectID string, dataRead
 		// Don't send inactive objects to the other side
 		common.ObjectLocks.Unlock(lockIndex)
 		apiObjectLocks.Unlock(lockIndex)
+		apiLock.Unlock()
 		return true, nil
 	}
 
@@ -761,6 +775,7 @@ func PutObjectAllData(orgID string, objectType string, objectID string, dataRead
 
 	common.ObjectLocks.Unlock(lockIndex)
 	apiObjectLocks.Unlock(lockIndex)
+	apiLock.Unlock()
 	objectInQueue := common.ObjectInQueue{NotificationAction: common.Update, NotificationType: common.TypeObject, Object: *updatedMetaData, Destinations: []common.StoreDestinationStatus{}}
 	objectQueue.SendObjectToQueue(objectInQueue)
 
