@@ -2356,13 +2356,20 @@ func handleObjectPutData(orgID string, objectType string, objectID string, write
 			trace.Debug("In handleObjectPutData. TotalSize: %d, startOffset: %d, endOffset: %d\n", totalSize, startOffset, endOffset)
 		}
 
+		requestBody := common.NewReader(request.Body)
+		//buff := new(bytes.Buffer)
+		//_, err = buff.ReadFrom(&requestBody)
+		//if err != nil {
+		//	communications.SendErrorResponse(writer, err, "", 0)
+		//}
+
 		var found bool
 		var chunkUpload bool
 		if totalSize == 0 && startOffset == -1 && endOffset == -1 {
-			found, err = PutObjectAllData(orgID, objectType, objectID, request.Body)
+			found, err = PutObjectAllData(orgID, objectType, objectID, requestBody)
 			chunkUpload = false
 		} else {
-			found, err = PutObjectChunkData(orgID, objectType, objectID, request.Body, startOffset, endOffset, totalSize)
+			found, err = PutObjectChunkData(orgID, objectType, objectID, requestBody, startOffset, endOffset, totalSize)
 			chunkUpload = true
 		}
 

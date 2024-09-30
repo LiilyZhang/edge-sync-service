@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"hash"
+	"io"
 	"net/http"
 	"os"
 	"regexp"
@@ -566,12 +567,14 @@ type StoreDestinationStatus struct {
 // DestinationsStatus provides information about the delivery status of an object for a certain destination.
 // The status can be one of the following:
 // Indication whether the object has been delivered to the destination
-//   pending - inidicates that the object is pending delivery to this destination
-//   delivering - indicates that the object is being delivered to this destination
-//   delivered - indicates that the object was delivered to this destination
-//   consumed - indicates that the object was consumed by this destination
-//   deleted - indicates that this destination acknowledged the deletion of the object
-//   error - indicates that a feedback error message was received from this destination
+//
+//	pending - inidicates that the object is pending delivery to this destination
+//	delivering - indicates that the object is being delivered to this destination
+//	delivered - indicates that the object was delivered to this destination
+//	consumed - indicates that the object was consumed by this destination
+//	deleted - indicates that this destination acknowledged the deletion of the object
+//	error - indicates that a feedback error message was received from this destination
+//
 // swagger:model
 type DestinationsStatus struct {
 	// DestType is the destination type
@@ -595,11 +598,13 @@ type DestinationsStatus struct {
 // ObjectStatus describes the delivery status of an object for a destination
 // The status can be one of the following:
 // Indication whether the object has been delivered to the destination
-//   delivering - indicates that the object is being delivered
-//   delivered - indicates that the object was delivered
-//   consumed - indicates that the object was consumed
-//   deleted - indicates that this destination acknowledged the deletion of the object
-//   error - indicates that a feedback error message was received
+//
+//	delivering - indicates that the object is being delivered
+//	delivered - indicates that the object was delivered
+//	consumed - indicates that the object was consumed
+//	deleted - indicates that this destination acknowledged the deletion of the object
+//	error - indicates that a feedback error message was received
+//
 // swagger:model
 type ObjectStatus struct {
 	// OrgID is the organization ID of the organization
@@ -1117,6 +1122,32 @@ func ValidateDestinationListInput(destinationsList []string) (bool, SyncServiceE
 	}
 	return true, nil
 }
+
+// Reader wraps an io.Reader, allowing "clones" to be created via the View method.
+type Reader struct {
+	r   io.Reader
+	mux sync.Mutex // could maybe be replaced by an RWMutex
+}
+
+func NewReader(reader io.Reader) Reader {
+	return Reader{
+		r:   reader,
+		mux: *new(sync.Mutex),
+	}
+}
+
+func (r Reader) Read(p []byte) (n int, err error) {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	return r.r.Read(p)
+}
+
+// func (r *Reader) Write(p []byte) (n int, err error) {
+// 	r.mux.Lock()
+// 	defer r.mux.Unlock()
+// 	return r.r.Write(p)
+// }
 
 func init() {
 	Version.Major = 1

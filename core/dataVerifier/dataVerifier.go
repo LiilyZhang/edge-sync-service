@@ -78,6 +78,7 @@ func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID stri
 			return false, &common.InternalError{Message: "Signature is not base64 encoded. Error: " + err.Error()}
 		} else {
 
+			//time.Sleep(time.Duration(10) * time.Second)
 			if dataIn, err = io.ReadAll(data); err != nil && err != io.EOF {
 				if trace.IsLogging(logger.DEBUG) {
 					trace.Debug("DataVerifier - Error: check incoming data for (%v %v %v), length is %v, error: %v", orgID, objectType, objectID, len(dataIn), err)
@@ -89,17 +90,25 @@ func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID stri
 				data = bytes.NewBuffer(dataIn)
 			}
 
+			//time.Sleep(time.Duration(10) * time.Second)
+
+			// if dataIn, err = io.ReadAll(data); err != nil && err != io.EOF {
+			// 	if trace.IsLogging(logger.DEBUG) {
+			// 		trace.Debug("2. DataVerifier - Error: check incoming data for (%v %v %v), length is %v, error: %v", orgID, objectType, objectID, len(dataIn), err)
+			// 	}
+			// } else {
+			// 	if trace.IsLogging(logger.DEBUG) {
+			// 		trace.Debug("2. DataVerifier - check incoming data for (%v %v %v), length is %v", orgID, objectType, objectID, len(dataIn))
+			// 	}
+			// 	data = bytes.NewBuffer(dataIn)
+			// }
 			// Here we need to hash the message
+			// here dr is wrong => data is wrong, data here != dataIn
+			// data hash is wrong, data is wrong
 			dr = io.TeeReader(data, dataVerifier.dataHash)
 			//n, err := io.Copy(dataVerifier.dataHash, data)
-
-			// bytesArray := StreamToByte(data)
 			// if trace.IsLogging(logger.DEBUG) {
-			// 	trace.Debug("DataVerifier - StreamToByte: %v\n", string(bytesArray))
-			// }
-			// n, err := dataVerifier.dataHash.Write(bytesArray)
-			// if trace.IsLogging(logger.DEBUG) {
-			// 	trace.Debug("DataVerifier - write to hash n: %v, err: %v\n", n, err)
+			// 	trace.Debug("DataVerifier - dataHash for (%v %v %v)is %v", orgID, objectType, objectID, dataVerifier.dataHash.Size())
 			// }
 		}
 	}
@@ -111,6 +120,8 @@ func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID stri
 			trace.Debug("DataVerifier - In VerifyDataSignature, verifying and storing data for object %s %s\n", objectType, objectID)
 		}
 	}
+
+	//time.Sleep(time.Duration(5) * time.Second)
 
 	if destinationDataURI != "" {
 		if _, err := dataURI.StoreData(destinationDataURI, dr, 0); err != nil {
@@ -130,6 +141,8 @@ func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID stri
 			trace.Debug("Didn't find metatdata for %v %v %v, error: %v", orgID, objectType, objectID, err)
 		}
 	}
+
+	//time.Sleep(time.Duration(5) * time.Second)
 
 	downloadStream, err := Store.RetrieveObjectData(orgID, objectType, objectID, false)
 	//storedData = make([]byte, objectSize)
@@ -185,6 +198,11 @@ func (dataVerifier *DataVerifier) RemoveUnverifiedData(metaData common.MetaData)
 
 func (dataVerifier *DataVerifier) verifyHelper(publicKeyBytes []byte, signatureBytes []byte) (bool, common.SyncServiceError) {
 	dataHashSum := dataVerifier.dataHash.Sum(nil)
+	// if trace.IsLogging(logger.DEBUG) {
+	// 	trace.Debug("dataHashSum: %v", dataHashSum)
+	// 	trace.Debug("publicKeyBytes: %v", publicKeyBytes)
+	// 	trace.Debug("signatureBytes: %v", signatureBytes)
+	// }
 	if pubKey, err := x509.ParsePKIXPublicKey(publicKeyBytes); err != nil {
 		return false, &common.InternalError{Message: "Failed to parse public key, Error: " + err.Error()}
 	} else {
@@ -194,8 +212,13 @@ func (dataVerifier *DataVerifier) verifyHelper(publicKeyBytes []byte, signatureB
 				trace.Debug("Failed to verify data with public key and data signature, Error: %v", err.Error())
 
 			}
-			return true, nil
-			//return false, &common.InternalError{Message: "Failed to verify data with public key and data signature, Error: " + err.Error()}
+			//return true, nil
+			return false, &common.InternalError{Message: "Failed to verify data with public key and data signature, Error: " + err.Error()}
+		} else {
+			if trace.IsLogging(logger.DEBUG) {
+				trace.Debug("Successfully to verify data with public key and data signature")
+
+			}
 		}
 	}
 	return true, nil
