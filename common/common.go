@@ -1125,17 +1125,19 @@ func ValidateDestinationListInput(destinationsList []string) (bool, SyncServiceE
 
 // Reader wraps an io.Reader, allowing "clones" to be created via the View method.
 type Reader struct {
-	r   io.Reader
+	r io.Reader
+	//d   []byte
 	mux sync.Mutex // could maybe be replaced by an RWMutex
 }
 
-func NewReader(reader io.Reader) io.Reader {
+func NewReader(reader io.Reader) *Reader {
 	// var rd *Reader
 	// rd = &Reader{
 	// 	r:   reader,
 	// 	mux: *new(sync.Mutex),
 	// }
 	// return rd
+	//r, _ := io.ReadAll(reader)
 
 	return &Reader{
 		r:   reader,

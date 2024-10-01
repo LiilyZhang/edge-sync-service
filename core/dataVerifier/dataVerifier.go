@@ -106,6 +106,7 @@ func (dataVerifier *DataVerifier) VerifyDataSignature(data io.Reader, orgID stri
 			// here dr is wrong => data is wrong, data here != dataIn
 			// data hash is wrong, data is wrong
 			dr = io.TeeReader(data, dataVerifier.dataHash)
+
 			//n, err := io.Copy(dataVerifier.dataHash, data)
 			// if trace.IsLogging(logger.DEBUG) {
 			// 	trace.Debug("DataVerifier - dataHash for (%v %v %v)is %v", orgID, objectType, objectID, dataVerifier.dataHash.Size())
@@ -198,11 +199,6 @@ func (dataVerifier *DataVerifier) RemoveUnverifiedData(metaData common.MetaData)
 
 func (dataVerifier *DataVerifier) verifyHelper(publicKeyBytes []byte, signatureBytes []byte) (bool, common.SyncServiceError) {
 	dataHashSum := dataVerifier.dataHash.Sum(nil)
-	// if trace.IsLogging(logger.DEBUG) {
-	// 	trace.Debug("dataHashSum: %v", dataHashSum)
-	// 	trace.Debug("publicKeyBytes: %v", publicKeyBytes)
-	// 	trace.Debug("signatureBytes: %v", signatureBytes)
-	// }
 	if pubKey, err := x509.ParsePKIXPublicKey(publicKeyBytes); err != nil {
 		return false, &common.InternalError{Message: "Failed to parse public key, Error: " + err.Error()}
 	} else {

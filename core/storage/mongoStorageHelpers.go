@@ -94,7 +94,7 @@ func (store *MongoStorage) deleteObject(orgID string, objectType string, objectI
 
 // append data stream to mongodb data
 func (store *MongoStorage) copyDataToFile(id string, dataReader io.Reader) (err common.SyncServiceError) {
-	store.removeFile(id)
+	store.removeFile(id) //remove the file from grid.fs, id is "org:objectType:objectId"
 	err = store.createFile(id, dataReader)
 	if err != nil {
 		return &Error{fmt.Sprintf("Failed to create file to store the data. Error: %s.", err)}
@@ -356,22 +356,29 @@ func (store *MongoStorage) openFile(id string) (*gridfs.DownloadStream, common.S
 // Save file into mongo gridFS
 func (store *MongoStorage) createFile(id string, data io.Reader) common.SyncServiceError {
 
-	function := func(db *mongo.Database) (*gridfs.DownloadStream, error) {
+	function := func(db *mongo.Database) error {
 		var err error
 		bucket := store.gridfsBucket
 		if bucket == nil {
 			if bucket, err = gridfs.NewBucket(db); err != nil {
-				return nil, err
+				return err
 			}
 		}
 
 		uploadOpts := options.GridFSUpload().SetChunkSizeBytes(int32(common.Configuration.MaxDataChunkSize))
-		// filename of the object in fs.File is the value of id
-		_, err = bucket.UploadFromStream(id, io.Reader(data), uploadOpts)
-		return nil, err
+		// // filename of the object in fs.File is the value of id
+		// _, err = bucket.UploadFromStream(id, io.Reader(data), uploadOpts)
+
+		if uploadStream, err := bucket.OpenUploadStream(id, uploadOpts); err != nil {
+			return err
+		} else {
+			_, err = io.Copy(uploadStream, data)
+			uploadStream.Close()
+			return err
+		}
 	}
 
-	_, retry, err := store.withDBAndReturnHelper(function, false)
+	retry, err := store.withDBHelper(function, false)
 	if err != nil {
 		return err
 	}
